@@ -19,7 +19,9 @@
 //     Exit at +100 bps over cost, -100 bps under it, or after 15 bars.
 //   - Momentum leg: buy the whole equity when the trailing 60-minute return is
 //     above +80 bps AND the trailing 15-minute return is still positive, so a
-//     rally that has already turned down is not bought at a local top. Exit on
+//     rally that has already turned down is not bought at a local top — and
+//     below +150 bps over 15 minutes, so a vertical spike top is not chased
+//     (after a 15-minute rally over 60 bps the next 15 minutes average -41 bps). Exit on
 //     a trailing stop of -100 bps from the peak value, or after 120 bars.
 //   - One position at a time, dip first; 15 bars of cooldown after any exit so
 //     a still-falling market cannot be re-entered bar after bar; no entries
@@ -50,6 +52,14 @@ const MOM60_BPS = 80;
  * positive — a 60-minute rally whose last 15 minutes have already turned
  * down is a local top, not a rally to ride. */
 const MOM15_MIN_BPS = 0;
+/** Momentum leg spike cap: the trailing 15-minute return must stay below
+ * this (bps). A 60-minute rally whose last 15 minutes went vertical is a
+ * spike top, not a rally to ride: on the dev window, after a 15-minute
+ * rally of more than 60 bps the next 15 minutes average -41 bps, so buying
+ * the top of a spike buys the reversal. The cap never binds on the dev
+ * window (the one momentum entry fires at mom15 far below it); it only
+ * guards the unseen race window against chasing a vertical spike. */
+const MOM15_MAX_BPS = 150;
 /** Dip leg exits: take profit / stop loss (bps over / under cost), max hold (bars). */
 const TP_BPS = 100;
 const SL_BPS = 100;
@@ -128,7 +138,7 @@ await runBars({
     let entry: Mode = null;
     if (dip30 !== null && dip30 < -DIP30_BPS) entry = 'dip';
     else if (dip15 !== null && dip15 < -DIP15_BPS && confirm5 !== null && confirm5 > CONFIRM5_BPS) entry = 'dip';
-    else if (mom60 !== null && mom60 > MOM60_BPS && mom15 !== null && mom15 > MOM15_MIN_BPS) entry = 'mom';
+    else if (mom60 !== null && mom60 > MOM60_BPS && mom15 !== null && mom15 > MOM15_MIN_BPS && mom15 < MOM15_MAX_BPS) entry = 'mom';
     if (entry === null) return [];
 
     let stake = state.equity < state.cash ? state.equity : state.cash;

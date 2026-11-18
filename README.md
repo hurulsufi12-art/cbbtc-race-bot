@@ -26,7 +26,9 @@ overshooting on a large trade and arbitrage pulling it back within minutes.
 - **Momentum rider:** buy the whole equity when the trailing 60-minute return
   is above +80 bps AND the trailing 15-minute return is still positive (the
   rally is alive; a 60-minute rally whose last 15 minutes turned down is a
-  local top, not a ride). Exit on a trailing stop of −100 bps from the peak value,
+  local top, not a ride) but below +150 bps — a vertical spike top is not
+  chased (after a 15-minute rally over 60 bps the next 15 minutes average
+  −41 bps). Exit on a trailing stop of −100 bps from the peak value,
   or after 120 bars.
 - One position at a time, dip first; 15 bars of cooldown after any exit; no
   entries after seq 1400. Orders cap slippage at 100 bps. Fully deterministic:
